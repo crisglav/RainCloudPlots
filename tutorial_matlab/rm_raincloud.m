@@ -15,28 +15,43 @@
 
 %% TO-DO:
 % Patch can create colour gradients using the 'interp' option to 'FaceColor'. Allow this?
+%
+%% NEW:
+% - Parse arguments
 
-function h = rm_raincloud(data, colours, plot_top_to_bottom, density_type, bandwidth)
+function h = rm_raincloud(data, varargin)
+% input parsing settings
+p = inputParser;
+p.CaseSensitive = true;
+p.Parameters;
+p.Results;
+p.KeepUnmatched = true;
+
+%% default arguments
+% set the desired and optional input arguments
+addRequired(p, 'data', @iscell);
+addOptional(p, 'colours', [0.5 0.5 0.5; 1 1 1; 0 0 0], @isnumeric)
+addOptional(p, 'bandwidth', [])
+addOptional(p, 'density_type', 'ks', @ischar)
+addOptional(p, 'plot_top_to_bottom', 0, @isnumeric) % left-to-right plotting by default
+
+
+% parse the input
+parse(p,data,varargin{:});
+% then set/get all the inputs out of this structure
+data                = p.Results.data;
+colours             = p.Results.colours;
+bandwidth           = p.Results.bandwidth;
+density_type        = p.Results.density_type;
+plot_top_to_bottom  = p.Results.plot_top_to_bottom;
+
+
 %% check dimensions of data
 
 [n_plots_per_series, n_series] = size(data);
 
 % make sure we have correct number of colours
 assert(all(size(colours) == [n_series 3]), 'number of colors does not match number of plot series');
-
-%% default arguments
-
-if nargin < 3
-    plot_top_to_bottom  = 0;    % left-to-right plotting by default
-end
-
-if nargin < 4
-    density_type        = 'ks'; % use 'ksdensity' to create cloud shapes
-end
-
-if nargin < 5
-    bandwidth           = [];   % let the function specify the bandwidth
-end
 
 %% Calculate properties of density plots
 
